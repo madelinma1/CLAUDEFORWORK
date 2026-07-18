@@ -103,12 +103,11 @@
 </main>
 
 <script>
-  // NOTE: This form currently only carries the visitor's name/email forward to
-  // the payment page via sessionStorage + query params. It does NOT persist
-  // leads anywhere. To capture leads who fill this out but never pay, wire
-  // the fetch() call below to a form backend (e.g. Formspree, a Google Sheets
-  // webhook, your CRM's API) and replace FORM_ENDPOINT with your real URL.
-  var FORM_ENDPOINT = ""; // e.g. "https://formspree.io/f/your-form-id"
+  // Leads post here via a Google Apps Script Web App bound to the
+  // "VISIBLE — Registros de reserva" sheet, which appends each signup as a
+  // row. Paste your deployed /exec URL below once you've set it up (see the
+  // Apps Script snippet + deploy steps shared alongside this file).
+  var FORM_ENDPOINT = ""; // e.g. "https://script.google.com/macros/s/AKfycb.../exec"
 
   var form = document.getElementById('signup-form');
   var errorBox = document.getElementById('form-error');
@@ -136,10 +135,13 @@
     }
 
     if (FORM_ENDPOINT) {
+      // mode: 'no-cors' + a form-encoded body avoids a CORS preflight, which
+      // Apps Script web apps don't handle. The response is opaque either way
+      // (we can't read it), so we just fire the request and move on.
       fetch(FORM_ENDPOINT, {
         method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, email: email })
+        mode: 'no-cors',
+        body: new URLSearchParams({ name: name, email: email })
       }).then(goToPayment).catch(goToPayment);
     } else {
       goToPayment();
